@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Export Reports{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <h1>Export Reports</h1>
+    <p>Download comprehensive medical analysis reports in PDF or HTML format</p>
+</div>
+
+{% if scan and scan.status in ['complete', 'risk_computed', 'visualized'] %}
+
+<!-- Report Preview -->
+<div class="glass-card slide-up delay-1" style="margin-bottom: 24px;">
+    <div class="section-title">
+        <i data-lucide="file-text"></i> Report Summary
+    </div>
+    <div class="metric-grid">
+        <div class="metric-item">
+            <div class="metric-label">Scan ID</div>
+            <div class="metric-value" style="font-size:16px;">{{ scan_id }}</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">File Name</div>
+            <div class="metric-value" style="font-size:16px;">{{ scan.filename }}</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Risk Level</div>
+            <div class="metric-value">
+                {% set risk_level = scan.risk.risk_level if scan.risk else 'N/A' %}
+                <span
+                    class="risk-badge {% if risk_level == 'High' %}high{% elif risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                    {{ risk_level }}
+                </span>
+            </div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Status</div>
+            <div class="metric-value mint" style="font-size:16px;">{{ scan.status | replace('_', ' ') | title }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Cards -->
+<div class="grid-2 slide-up delay-2">
+    <div class="export-card">
+        <div class="export-icon">
+            <i data-lucide="file-text" style="width:48px;height:48px;color:var(--accent-coral)"></i>
+        </div>
+        <h3>PDF Report</h3>
+        <p>Professional medical report with images, metrics, risk assessment, and insights. Ideal for clinical
+            documentation.</p>
+        <button class="btn btn-primary" onclick="exportReport('pdf')">
+            <i data-lucide="download" style="width:16px;height:16px"></i> Download PDF
+        </button>
+    </div>
+
+    <div class="export-card">
+        <div class="export-icon">
+            <i data-lucide="globe" style="width:48px;height:48px;color:var(--accent-mint)"></i>
+        </div>
+        <h3>HTML Report</h3>
+        <p>Interactive web-based report with styled layout. Can be viewed in any browser and shared digitally.</p>
+        <button class="btn btn-mint" onclick="exportReport('html')">
+            <i data-lucide="download" style="width:16px;height:16px"></i> Download HTML
+        </button>
+    </div>
+</div>
+
+<!-- Report Contents -->
+<div class="glass-card slide-up delay-3" style="margin-top: 24px;">
+    <div class="section-title">
+        <i data-lucide="list-checks"></i> Report Contents
+    </div>
+    <div class="grid-2">
+        <div>
+            <h4 style="color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">Included Data</h4>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Patient
+                    scan image
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Enhanced
+                    image
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i>
+                    Segmentation mask
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Risk
+                    score & level
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h4 style="color: var(--text-primary); margin-bottom: 12px; font-size: 14px;">&nbsp;</h4>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Tumor
+                    metrics
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Natural
+                    language summary
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i> Timestamp
+                    & version
+                </li>
+                <li style="display:flex; align-items:center; gap:8px; color: var(--text-secondary); font-size:13px;">
+                    <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--accent-mint)"></i>
+                    Enhancement metrics
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="glass-card">
+    <div class="empty-state">
+        <i data-lucide="file-down" style="width:48px;height:48px"></i>
+        <h3>No Report Data</h3>
+        <p>Complete the analysis pipeline first to generate downloadable reports.</p>
+        <a href="/dashboard/upload" class="btn btn-primary" style="margin-top:20px;">
+            <i data-lucide="upload-cloud" style="width:16px;height:16px"></i> Upload Scan
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Store scan_id for export functions
+    {% if scan_id %}
+    sessionStorage.setItem('currentScanId', '{{ scan_id }}');
+    {% endif %}
+</script>
+{% endblock %}

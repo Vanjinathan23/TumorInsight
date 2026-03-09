@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px;">
+        <h1 style="margin: 0; font-size: 32px;">Clinical Intelligence Hub</h1>
+        <span class="status-indicator-pill online">Live Neural Feed</span>
+    </div>
+    <p style="color: var(--text-muted); font-size: 14px;">Operational intelligence and real-time AI diagnostic
+        monitoring</p>
+</div>
+
+<!-- TOP METRICS SECTION -->
+<div class="stats-grid" style="margin-bottom: 32px;">
+    <div class="stat-card coral slide-up delay-1">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="stat-label" style="margin-bottom: 4px;">Total Scans</div>
+                <div class="stat-value" style="font-size: 36px; line-height: 1;">{{ stats.total_scans }}</div>
+            </div>
+            <div class="stat-icon coral" style="width: 44px; height: 44px; font-size: 20px;">
+                <i data-lucide="scan-line"></i>
+            </div>
+        </div>
+        <div style="margin-top: 20px; display: flex; align-items: center; gap: 8px;">
+            <div class="mini-chart">
+                <div class="mini-bar" style="height: 40%;"></div>
+                <div class="mini-bar" style="height: 60%;"></div>
+                <div class="mini-bar" style="height: 50%;"></div>
+                <div class="mini-bar" style="height: 80%;"></div>
+                <div class="mini-bar" style="height: 100%;"></div>
+            </div>
+            <div class="stat-trend up" style="font-size: 11px;">+12% Activity</div>
+        </div>
+    </div>
+
+    <div class="stat-card mint slide-up delay-2">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="stat-label" style="margin-bottom: 4px;">Detected Risks</div>
+                <div class="stat-value" style="font-size: 36px; line-height: 1;">{{ stats.risk_alerts }}</div>
+            </div>
+            <div class="stat-icon mint" style="width: 44px; height: 44px; font-size: 20px;">
+                <i data-lucide="shield-alert"></i>
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <div class="status-indicator-pill {% if stats.risk_alerts > 0 %}attention{% else %}online{% endif %}">
+                {% if stats.risk_alerts > 0 %}Immediate Action Required{% else %}System Secure{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card gold slide-up delay-3">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div class="stat-label" style="margin-bottom: 4px;">Processing Quality</div>
+                <div class="stat-value" style="font-size: 36px; line-height: 1;">{{ stats.avg_quality }}%</div>
+            </div>
+            <div class="stat-icon gold" style="width: 44px; height: 44px; font-size: 20px;">
+                <i data-lucide="sparkles"></i>
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <div class="health-bar-container" style="width: 100%; height: 4px;">
+                <div class="health-bar-fill"
+                    style="width: {{ stats.avg_quality }}%; background: linear-gradient(90deg, #f5a623, #ffc857);">
+                </div>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Optimal enhancement threshold met
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN HUB LAYOUT -->
+<div class="hub-layout fade-in delay-2">
+    <!-- LEFT: RECENT ACTIVITY -->
+    <div class="activity-card slide-up delay-2">
+        <div class="section-title" style="padding: 24px 24px 0 24px; margin-bottom: 12px;">
+            <i data-lucide="history"></i> Recent Clinical Activity
+        </div>
+
+        {% if scans %}
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>Medical Scan</th>
+                    <th>Status</th>
+                    <th>Risk Factor</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sid, scan in scans.items() %}
+                <tr>
+                    <td>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; color: var(--text-primary);">{{ scan.filename }}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);">{{ scan.uploaded_at or 'Just now'
+                                }}
+                                • ID: {{ sid[:8] }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-mint);">
+                            </div>
+                            <span style="font-size: 12px;">{{ scan.status or 'Processed' }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if scan.risk %}
+                        <span class="risk-badge {{ scan.risk.risk_level | lower }}">{{ scan.risk.risk_level }}</span>
+                        {% else %}
+                        <span class="risk-badge"
+                            style="background: rgba(255,255,255,0.05); color: var(--text-muted);">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/dashboard/detection?scan_id={{ sid }}" class="btn btn-sm btn-secondary">
+                            View Analysis
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="padding: 60px 40px; text-align: center;">
+            <i data-lucide="database-zap" style="width: 48px; height: 48px; opacity: 0.2; margin-bottom: 16px;"></i>
+            <h3 style="color: var(--text-secondary);">No scans indexed</h3>
+            <p style="font-size: 13px; color: var(--text-muted);">Once scans are uploaded, they will appear in this
+                clinical audit trail.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- RIGHT: SYSTEM MONITOR & ACTIONS -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+        <!-- QUICK ACTIONS -->
+        <div class="glass-card slide-up delay-3" style="border-left: 4px solid var(--accent-coral);">
+            <div class="section-title">
+                <i data-lucide="zap"></i> Operations
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <a href="/dashboard/upload" class="btn btn-primary" style="justify-content: center; padding: 14px;">
+                    <i data-lucide="plus-circle"></i> New Analysis
+                </a>
+                <a href="/dashboard/export" class="btn btn-secondary" style="justify-content: center; padding: 14px;">
+                    <i data-lucide="file-text"></i> Clinical Report
+                </a>
+            </div>
+        </div>
+
+        <!-- CLINICAL RISK DISTRIBUTION -->
+        <div class="glass-card slide-up delay-4">
+            <div class="section-title">
+                <i data-lucide="pie-chart"></i> Case Distribution
+            </div>
+            <div style="margin-top: 16px;">
+                <div
+                    style="height: 12px; width: 100%; background: rgba(255, 255, 255, 0.05); border-radius: 6px; display: flex; overflow: hidden; margin-bottom: 20px;">
+                    {% set total = stats.total_scans or 1 %}
+                    <div
+                        style="width: {{ (stats.risk_distribution.High / total * 100) }}%; background: var(--risk-high); height: 100%;">
+                    </div>
+                    <div
+                        style="width: {{ (stats.risk_distribution.Medium / total * 100) }}%; background: var(--risk-medium); height: 100%;">
+                    </div>
+                    <div
+                        style="width: {{ (stats.risk_distribution.Low / total * 100) }}%; background: var(--risk-low); height: 100%;">
+                    </div>
+                    <div
+                        style="width: {{ (stats.risk_distribution.Pending / total * 100) }}%; background: var(--text-muted); height: 100%;">
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--risk-high);"></div>
+                        <span>High Risk</span>
+                        <span style="margin-left: auto; font-weight: 700; color: var(--text-primary);">{{
+                            stats.risk_distribution.High }}</span>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--risk-medium);">
+                        </div>
+                        <span>Medium Risk</span>
+                        <span style="margin-left: auto; font-weight: 700; color: var(--text-primary);">{{
+                            stats.risk_distribution.Medium }}</span>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--risk-low);"></div>
+                        <span>Low Risk</span>
+                        <span style="margin-left: auto; font-weight: 700; color: var(--text-primary);">{{
+                            stats.risk_distribution.Low }}</span>
+                    </div>
+                    <div
+                        style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-secondary);">
+                        <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);">
+                        </div>
+                        <span>Pending</span>
+                        <span style="margin-left: auto; font-weight: 700; color: var(--text-primary);">{{
+                            stats.risk_distribution.Pending }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

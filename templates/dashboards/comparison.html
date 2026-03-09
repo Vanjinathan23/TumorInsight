@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Comparison{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <h1>Image Comparison</h1>
+    <p>Side-by-side comparison of original vs enhanced images with interactive slider</p>
+</div>
+
+{% if scan and scan.enhanced_path %}
+{% set original_url = '/' + scan.original_path | replace('\\', '/') %}
+{% set enhanced_url = '/' + scan.enhanced_path | replace('\\', '/') %}
+
+<!-- Comparison Slider -->
+<div class="glass-card-elevated slide-up delay-1">
+    <div class="section-title">
+        <i data-lucide="columns"></i> Interactive Comparison — Drag the slider
+    </div>
+    <div class="comparison-container" id="comparisonContainer">
+        <img src="{{ enhanced_url }}" alt="Enhanced" style="width:100%; display:block;">
+        <div class="comparison-original">
+            <img src="{{ original_url }}" alt="Original">
+        </div>
+        <div class="comparison-slider"></div>
+        <span class="comparison-label left">Original</span>
+        <span class="comparison-label right">Enhanced</span>
+    </div>
+</div>
+
+<!-- Side by Side with Insights -->
+<div class="grid-2 slide-up delay-2" style="margin-top: 24px;">
+    <!-- Original Side -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i data-lucide="image"></i> Original Scan Diagnostics
+        </div>
+        <div class="image-container" style="margin-bottom: 20px;">
+            <img src="{{ original_url }}" alt="Original">
+            <div class="image-label">Pre-Processing</div>
+        </div>
+
+        <div class="insight-box"
+            style="background: rgba(255,255,255,0.03); padding: 16px; border-radius: 12px; border: 1px solid var(--border-glass);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span class="info-label">Quality Score</span>
+                <span class="info-value coral">{{ scan.image_quality_score }}%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span class="info-label">Signal State</span>
+                <span class="info-value">{{ scan.quality_label }}</span>
+            </div>
+            <p
+                style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; border-top: 1px solid var(--border-glass); padding-top: 10px; margin-top: 10px;">
+                <i data-lucide="info" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>
+                Initial scan shows {{ scan.quality_label | lower }} clarity characteristics. Signal noise and contrast
+                were assessed prior to neural enhancement.
+            </p>
+        </div>
+    </div>
+
+    <!-- Enhanced Side -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i data-lucide="sparkles"></i> AI Analysis Findings
+        </div>
+        <div class="image-container" style="margin-bottom: 20px;">
+            <img src="{{ enhanced_url }}" alt="Enhanced">
+            <div class="image-label">Neural Enhancement</div>
+        </div>
+
+        <div class="insight-box"
+            style="background: var(--accent-mint-glow); padding: 16px; border-radius: 12px; border: 1px solid rgba(59, 232, 176, 0.2);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span class="info-label">Aggregated Risk</span>
+                <span class="info-value mint">{{ scan.risk.risk_level }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span class="info-label">Detected Volume</span>
+                <span class="info-value">{{ scan.tumor_area_percentage }}% Area</span>
+            </div>
+            <p
+                style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; border-top: 1px solid rgba(59, 232, 176, 0.2); padding-top: 10px; margin-top: 10px;">
+                <i data-lucide="activity"
+                    style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>
+                Neural pipeline detected {{ scan.summary.total_regions }} regions. Morphology and density analysis
+                indicates a {{ scan.risk.risk_level | lower }} suspicion profile.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Enhancement Metrics -->
+{% if scan.enhancement_metrics %}
+<div class="glass-card slide-up delay-3" style="margin-top: 24px;">
+    <div class="section-title">
+        <i data-lucide="bar-chart-3"></i> Enhancement Metrics
+    </div>
+    <div class="metric-grid">
+        <div class="metric-item">
+            <div class="metric-label">Noise Reduction</div>
+            <div class="metric-value mint">{{ scan.enhancement_metrics.noise_reduction_pct }}%</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Contrast Improvement</div>
+            <div class="metric-value mint">{{ scan.enhancement_metrics.contrast_improvement_pct }}%</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Quality Score</div>
+            <div class="metric-value coral">{{ scan.enhancement_metrics.quality_score }}</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Filters Applied</div>
+            <div class="metric-value" style="font-size:16px;">{{ scan.enhancement_metrics.filters_applied | join(', ')
+                }}</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">CLAHE Clip Limit</div>
+            <div class="metric-value">{{ scan.enhancement_metrics.clip_limit }}</div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Kernel Size</div>
+            <div class="metric-value">{{ scan.enhancement_metrics.kernel_size }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Visualizations -->
+{% if scan.visualizations %}
+<div class="grid-2 slide-up delay-3" style="margin-top: 24px;">
+    <div class="glass-card">
+        <div class="section-title">
+            <i data-lucide="flame"></i> Heatmap Overlay
+        </div>
+        <div class="image-container">
+            <img src="/{{ scan.visualizations.heatmap_overlay_path | replace('\\', '/') }}" alt="Heatmap">
+            <div class="image-label">Heatmap</div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="section-title">
+            <i data-lucide="hexagon"></i> Contour Overlay
+        </div>
+        <div class="image-container">
+            <img src="/{{ scan.visualizations.contour_overlay_path | replace('\\', '/') }}" alt="Contour">
+            <div class="image-label">Contours</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Navigation -->
+<div class="btn-group slide-up delay-4" style="margin-top: 24px; justify-content: center;">
+    <a href="/dashboard/detection?scan_id={{ scan_id }}" class="btn btn-secondary">
+        <i data-lucide="scan" style="width:16px;height:16px"></i> Detection View
+    </a>
+    <a href="/dashboard/risk?scan_id={{ scan_id }}" class="btn btn-secondary">
+        <i data-lucide="activity" style="width:16px;height:16px"></i> Risk Analysis
+    </a>
+    <a href="/dashboard/export?scan_id={{ scan_id }}" class="btn btn-primary">
+        <i data-lucide="file-down" style="width:16px;height:16px"></i> Export Report
+    </a>
+</div>
+
+{% else %}
+<div class="glass-card">
+    <div class="empty-state">
+        <i data-lucide="columns" style="width:48px;height:48px"></i>
+        <h3>No Comparison Data</h3>
+        <p>Upload and enhance a medical scan to compare original vs enhanced images.</p>
+        <a href="/dashboard/upload" class="btn btn-primary" style="margin-top:20px;">
+            <i data-lucide="upload-cloud" style="width:16px;height:16px"></i> Upload Scan
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        initComparisonSlider();
+    });
+</script>
+{% endblock %}

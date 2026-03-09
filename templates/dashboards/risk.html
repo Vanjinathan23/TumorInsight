@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Risk Analysis{% endblock %}
+
+{% block content %}
+{% set tab = request.args.get('tab', 'analysis') %}
+
+<div class="page-header fade-in">
+    <h1>{% if tab == 'insights' %}AI Engine Insights{% else %}Clinical Risk Analysis{% endif %}</h1>
+    <p>{% if tab == 'insights' %}Neural pipeline interpretation and diagnostic findings{% else %}AI-computed risk
+        scoring with severity breakdown and detailed metrics{% endif %}</p>
+</div>
+
+{% if scan and scan.risk %}
+{% set risk = scan.risk %}
+{% set components = risk.component_scores or {} %}
+
+{% if tab == 'analysis' %}
+<div class="grid-2">
+    <!-- Risk Gauge -->
+    <div class="glass-card-elevated slide-up delay-1" style="text-align: center;">
+        <div class="section-title" style="justify-content: center;">
+            <i data-lucide="gauge"></i> Risk Score
+        </div>
+        <div class="risk-gauge-wrapper">
+            <div class="risk-gauge" id="riskGauge">
+                <svg viewBox="0 0 220 120">
+                    <path class="gauge-bg" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" />
+                    <path class="gauge-fill" d="M 20 110 A 90 90 0 0 1 200 110" fill="none" id="gaugeFill" />
+                </svg>
+                <div class="gauge-value" id="gaugeValue">0%</div>
+            </div>
+            <div
+                class="gauge-label {% if risk.risk_level == 'Low' %}low{% elif risk.risk_level == 'Medium' %}medium{% else %}high{% endif %}">
+                {{ risk.risk_level }} Risk
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="glass-card slide-up delay-2">
+        <div class="section-title">
+            <i data-lucide="bar-chart-3"></i> Key Metrics
+        </div>
+        <div class="metric-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="metric-item">
+                <div class="metric-label">Confidence Score</div>
+                <div class="metric-value coral">{{ "%.1f" | format(risk.confidence_score * 100) }}%</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Severity Index</div>
+                <div class="metric-value">{{ risk.severity_index }}</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Regions Detected</div>
+                <div class="metric-value">{{ risk.total_regions }}</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Risk Score</div>
+                <div
+                    class="metric-value {% if risk.risk_level == 'High' %}coral{% elif risk.risk_level == 'Medium' %}{% else %}mint{% endif %}">
+                    {{ risk.risk_score }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Component Breakdown -->
+<div class="glass-card slide-up delay-3" style="margin-top: 24px;">
+    <div class="section-title">
+        <i data-lucide="pie-chart"></i> Risk Component Breakdown
+    </div>
+    <div class="metric-grid">
+        <div class="metric-item">
+            <div class="metric-label">Normalized Area (35%)</div>
+            <div class="metric-value">{{ components.get('normalized_area', 0) }}</div>
+            <div class="progress-bar" style="margin-top:8px;">
+                <div class="progress-fill" style="width: {{ (components.get('normalized_area', 0) * 100) }}%"></div>
+            </div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Irregularity (25%)</div>
+            <div class="metric-value">{{ components.get('irregularity', 0) }}</div>
+            <div class="progress-bar" style="margin-top:8px;">
+                <div class="progress-fill" style="width: {{ (components.get('irregularity', 0) * 100) }}%"></div>
+            </div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Edge Density (25%)</div>
+            <div class="metric-value">{{ components.get('edge_density', 0) }}</div>
+            <div class="progress-bar" style="margin-top:8px;">
+                <div class="progress-fill" style="width: {{ (components.get('edge_density', 0) * 100) }}%"></div>
+            </div>
+        </div>
+        <div class="metric-item">
+            <div class="metric-label">Texture Variation (15%)</div>
+            <div class="metric-value">{{ components.get('texture_variation', 0) }}</div>
+            <div class="progress-bar" style="margin-top:8px;">
+                <div class="progress-fill" style="width: {{ (components.get('texture_variation', 0) * 100) }}%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Severity per Region -->
+{% if risk.region_severities %}
+<div class="glass-card slide-up delay-3" style="margin-top: 24px;">
+    <div class="section-title">
+        <i data-lucide="list"></i> Region Severity Detail
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Region</th>
+                <th>Severity</th>
+                <th>Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for severity in risk.region_severities %}
+            <tr>
+                <td>Region {{ loop.index }}</td>
+                <td>{{ severity }}</td>
+                <td>
+                    <span
+                        class="risk-badge {% if severity > 0.65 %}high{% elif severity > 0.35 %}medium{% else %}low{% endif %}">
+                        {% if severity > 0.65 %}High{% elif severity > 0.35 %}Medium{% else %}Low{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endif %}
+
+{% if tab == 'insights' %}
+<!-- AI Insight -->
+<div class="glass-card slide-up delay-1">
+    <div class="section-title">
+        <i data-lucide="activity"></i> AI-Generated Clinical Insights
+    </div>
+    <div class="insight-box" style="font-size: 16px; line-height: 1.6; color: var(--text-primary);">
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-glass);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-coral);"></div>
+                <span style="font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Summary
+                    Finding</span>
+            </div>
+            {{ scan.insights }}
+        </div>
+
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-glass);">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-mint);"></div>
+                <span style="font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Neural
+                    Interpretation</span>
+            </div>
+            {{ scan.ai_insight }}
+        </div>
+
+        <div class="grid-2" style="margin-top: 30px;">
+            <div class="insight-item" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px;">
+                <div style="color: var(--accent-coral); font-weight: 700; margin-bottom: 5px;">Quality Context</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Image quality was rated at {{
+                    scan.image_quality_score }}%, allowing for high-confidence feature extraction.</p>
+            </div>
+            <div class="insight-item" style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px;">
+                <div style="color: var(--accent-mint); font-weight: 700; margin-bottom: 5px;">Morphological Note</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">The tumor occupies approx {{
+                    scan.tumor_area_percentage }}% of the scanned volume.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Navigation -->
+<div class="btn-group slide-up delay-4" style="margin-top: 24px; justify-content: center;">
+    <a href="/dashboard/detection?scan_id={{ scan_id }}" class="btn btn-secondary">
+        <i data-lucide="scan" style="width:16px;height:16px"></i> Detection View
+    </a>
+    <a href="/dashboard/comparison?scan_id={{ scan_id }}" class="btn btn-secondary">
+        <i data-lucide="columns" style="width:16px;height:16px"></i> Compare Images
+    </a>
+    <a href="/dashboard/export?scan_id={{ scan_id }}" class="btn btn-primary">
+        <i data-lucide="file-down" style="width:16px;height:16px"></i> Export Report
+    </a>
+</div>
+
+{% else %}
+<div class="glass-card">
+    <div class="empty-state">
+        <i data-lucide="activity" style="width:48px;height:48px"></i>
+        <h3>No Risk Data</h3>
+        <p>Upload and analyze a medical scan to compute risk scores.</p>
+        <a href="/dashboard/upload" class="btn btn-primary" style="margin-top:20px;">
+            <i data-lucide="upload-cloud" style="width:16px;height:16px"></i> Upload Scan
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const score = parseFloat('{{ scan.risk.risk_score if (scan and scan.risk) else 0 }}');
+
+        // Store scan_id for export actions if present
+        {% if scan_id %}
+        sessionStorage.setItem('currentScanId', '{{ scan_id }}');
+        {% endif %}
+
+        const isActiveTab = (new URLSearchParams(window.location.search).get('tab') || 'analysis') === 'analysis';
+        if (isActiveTab && !isNaN(score)) {
+            setTimeout(() => { animateGauge(score); }, 150);
+        }
+    });
+</script>
+{% endblock %}

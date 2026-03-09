@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TumorInsightAI| Future of Medical Imaging</title>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --primary: #e85d3b;
+            --secondary: #3be8b0;
+            --legacy: #64748b;
+            --legacy-accent: #ef4444;
+            --bg: #0b0d17;
+            --text: #eef1f8;
+            --text-muted: #a0a6bd;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --font-main: 'Outfit', sans-serif;
+            --font-sub: 'Inter', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .stage {
+            position: absolute;
+            z-index: 10;
+            width: 90%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            padding: 2rem;
+            max-height: 100vh;
+            overflow: hidden;
+            /* Hide scrollbars for cinematic feel */
+        }
+
+        /* Hide scrollbars globally */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .stage-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        @keyframes pulse-logo {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 50px rgba(0, 242, 254, 0.5);
+            }
+        }
+
+        #stage-hero h1 {
+            font-size: clamp(3.5rem, 12vw, 7.5rem);
+            font-weight: 800;
+            letter-spacing: -4px;
+            line-height: 0.85;
+            margin-bottom: 2rem;
+            background: linear-gradient(to bottom, #fff 50%, rgba(255, 255, 255, 0.4));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(0, 242, 254, 0.2));
+        }
+
+        #stage-hero p {
+            font-size: 1.6rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            font-weight: 300;
+            margin-bottom: 4rem;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Stage 2: Comparison --- */
+        .comparison-header {
+            margin-bottom: 0.2rem;
+        }
+
+        .comparison-header h2 {
+            font-size: 1.6rem;
+            /* Reduced more */
+            margin-bottom: 0.1rem;
+        }
+
+        .comparison-header p {
+            font-size: 0.85rem;
+            /* Shorter text */
+        }
+
+        /* Stage 2 Centering Fix */
+        #stage-comparison {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #stage-comparison.stage-hidden {
+            transform: translate(-50%, -45%) scale(0.95);
+        }
+
+        /* Toggle */
+        .toggle-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.3rem;
+            /* Tighter */
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 0.3rem;
+            position: relative;
+            margin-bottom: 1rem;
+            /* Reduced */
+            backdrop-filter: blur(10px);
+        }
+
+        .toggle-btn {
+            padding: 0.6rem 2rem;
+            /* Shorter */
+            border-radius: 100px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: color 0.3s;
+        }
+
+        .toggle-btn.active {
+            color: #000;
+        }
+
+        .toggle-glider {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            height: calc(100% - 1rem);
+            width: calc(50% - 0.5rem);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 100px;
+            z-index: 1;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .legacy-active .toggle-glider {
+            transform: translateX(0);
+            background: #64748b;
+            box-shadow: none;
+        }
+
+        .ai-active .toggle-glider {
+            transform: translateX(100%);
+        }
+
+        /* Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            width: 100%;
+            min-height: 250px;
+            position: relative;
+        }
+
+        .card-set {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .card-set.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 242, 254, 0.3);
+            background: rgba(0, 242, 254, 0.02);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .card-icon::after {
+            content: '';
+            position: absolute;
+            inset: -5px;
+            border-radius: 18px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .ai-active .card-icon {
+            color: var(--primary);
+        }
+
+        .legacy-active .card-icon {
+            color: var(--legacy-accent);
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            font-family: var(--font-sub);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* --- UI Components --- */
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 100px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-glow {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            border-color: transparent;
+            box-shadow: 0 15px 50px rgba(0, 242, 254, 0.5);
+        }
+
+        .btn-glow i {
+            transition: transform 0.3s;
+        }
+
+        .btn-glow:hover i {
+            transform: translateX(5px) rotate(-10deg);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-muted);
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            background: rgba(0, 242, 254, 0.05);
+        }
+
+        .nav-arrow {
+            position: fixed;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            font-size: 32px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-arrow:hover {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 40px var(--primary);
+            border-color: transparent;
+        }
+
+        .nav-arrow i {
+            transition: transform 0.3s;
+        }
+
+        .nav-arrow:hover i {
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 1024px) {
+
+            .feature-grid,
+            .card-set {
+                grid-template-columns: 1fr;
+                position: relative;
+                height: auto;
+            }
+
+            body {
+                overflow-y: auto;
+                height: auto;
+                padding: 4rem 0;
+            }
+
+            .stage {
+                position: relative;
+            }
+        }
+    </style>
+</head>
+
+<body class="ai-active">
+
+    <div id="canvas-container"></div>
+
+    <!-- Floating Nav Arrow -->
+    <div class="nav-arrow" id="nextStageBtn" onclick="transitionToComparison()" title="Explore Technology">
+        <i data-lucide="chevron-right"></i>
+    </div>
+
+    <!-- STAGE 1: HERO LANDING -->
+    <div class="stage" id="stage-hero">
+        <h1>TumorInsight</h1>
+        <p>Advanced Neural Diagnostic Platform for Precise Medical Imaging & Risk Quantification.</p>
+    </div>
+
+    <!-- STAGE 2: COMPARISON -->
+    <div class="stage stage-hidden" id="stage-comparison">
+        <div class="comparison-header">
+            <h2>The Technical Advancement</h2>
+            <p style="color: var(--text-muted)">Architecting the next standard in patient diagnostic workflows</p>
+        </div>
+
+        <div class="toggle-box" id="toggleMode">
+            <div class="toggle-glider"></div>
+            <button class="toggle-btn" onclick="switchComparison('legacy')">
+                <i data-lucide="history"></i>
+                Legacy Systems
+            </button>
+            <button class="toggle-btn active" onclick="switchComparison('ai')">
+                <i data-lucide="shield-check"></i>
+                TumorInsight
+            </button>
+        </div>
+
+        <div class="feature-grid">
+            <!-- Legacy Set -->
+            <div class="card-set" id="set-legacy">
+                <div class="card">
+                    <div class="card-icon"><i data-lucide="alert-circle"></i></div>
+                    <h3>Fixed Contrast</h3>
+                    <p>Static histogram equalization fails to resolve artifacts in high-density scans.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i data-lucide="mouse-pointer-2"></i></div>
+                    <h3>Manual Tracing</h3>
+                    <p>Relies on human precision for tumor contouring—prone to 15% error margins.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon"><i data-lucide="folder-minus"></i></div>
+                    <h3>No Risk Engine</h3>
+                    <p>Qualitative grading requires manual reporting without quantitative metrics.</p>
+                </div>
+            </div>
+
+            <!-- AI Set -->
+            <div class="card-set visible" id="set-ai">
+                <div class="card">
+                    <div class="card-icon" style="box-shadow: 0 0 20px rgba(0,242,254,0.3);"><i
+                            data-lucide="layers"></i></div>
+                    <h3>Advanced Pipeline</h3>
+                    <p>Adaptive Neural Enhancement and background denoising to resolve hidden clinical details.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="box-shadow: 0 0 20px rgba(0,242,254,0.3);"><i
+                            data-lucide="scan-eye"></i>
+                    </div>
+                    <h3>Neural Detection</h3>
+                    <p>Deep-learning based tumor segmentation and real-time edge highlighting with 99.4% precision.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="box-shadow: 0 0 20px rgba(0,242,254,0.3);"><i
+                            data-lucide="bar-chart-3"></i></div>
+                    <h3>Decision Analytics</h3>
+                    <p>Quantified risk scoring and clinical reporting for data-driven diagnostic support.</p>
+                </div>
+            </div>
+        </div>
+
+        <div
+            style="display: flex; flex-direction: column; align-items: center; gap: 0.8rem; margin-top: 1rem; width: 100%; padding-bottom: 1rem;">
+            <a href="/dashboard/overview" class="btn btn-glow"
+                style="width: 100%; max-width: 400px; justify-content: center;">
+                Launch Main Dashboard
+                <i data-lucide="rocket"></i>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // --- THREE.JS SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Core 3D Geometry
+        const mainGeo = new THREE.IcosahedronGeometry(2.5, 4);
+        const mainMat = new THREE.MeshPhongMaterial({
+            color: 0xe85d3b,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.4,
+            emissive: 0xe85d3b,
+            emissiveIntensity: 0.6
+        });
+        const mesh = new THREE.Mesh(mainGeo, mainMat);
+        scene.add(mesh);
+
+        // Rotating Circles
+        const ringGeo = new THREE.TorusGeometry(3.5, 0.02, 16, 100);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x3be8b0, transparent: true, opacity: 0.3 });
+        const ring1 = new THREE.Mesh(ringGeo, ringMat);
+        const ring2 = new THREE.Mesh(ringGeo, ringMat);
+        ring2.rotation.x = Math.PI / 2;
+        scene.add(ring1, ring2);
+
+        // Starfield Particles
+        const partGeo = new THREE.BufferGeometry();
+        const partCount = 3000;
+        const posArray = new Float32Array(partCount * 3);
+        const colors = new Float32Array(partCount * 3);
+
+        for (let i = 0; i < partCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 15;
+            posArray[i + 1] = (Math.random() - 0.5) * 15;
+            posArray[i + 2] = (Math.random() - 0.5) * 15;
+
+            colors[i] = 1; colors[i + 1] = 1; colors[i + 2] = 1;
+        }
+        partGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        partGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const partMat = new THREE.PointsMaterial({ size: 0.008, vertexColors: true, transparent: true, opacity: 0.8 });
+        const points = new THREE.Points(partGeo, partMat);
+        scene.add(points);
+
+        // Lighting
+        const l1 = new THREE.PointLight(0x00f2fe, 2, 50);
+        l1.position.set(5, 5, 5);
+        scene.add(l1);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+        camera.position.z = 8;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            mesh.rotation.y += 0.002;
+            mesh.rotation.x += 0.001;
+            ring1.rotation.y += 0.005;
+            ring2.rotation.z += 0.005;
+            points.rotation.y += 0.0002;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- TRANSITIONS ---
+        function transitionToComparison() {
+            gsap.to(camera.position, { z: 12, duration: 1.5, ease: "power3.inOut" });
+            gsap.to(mesh.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 1.5, ease: "power3.inOut" });
+
+            document.getElementById('stage-hero').classList.add('stage-hidden');
+            document.getElementById('nextStageBtn').classList.add('stage-hidden');
+            setTimeout(() => {
+                document.getElementById('stage-comparison').classList.remove('stage-hidden');
+            }, 300);
+        }
+
+        function transitionToHero() {
+            gsap.to(camera.position, { z: 8, duration: 1.5, ease: "power3.inOut" });
+            gsap.to(mesh.scale, { x: 1, y: 1, z: 1, duration: 1.5, ease: "power3.inOut" });
+
+            document.getElementById('stage-comparison').classList.add('stage-hidden');
+            setTimeout(() => {
+                document.getElementById('stage-hero').classList.remove('stage-hidden');
+                document.getElementById('nextStageBtn').classList.remove('stage-hidden');
+            }, 300);
+        }
+
+        function switchComparison(mode) {
+            const body = document.body;
+            const toggle = document.getElementById('toggleMode');
+            const btns = toggle.querySelectorAll('.toggle-btn');
+            const legacySet = document.getElementById('set-legacy');
+            const aiSet = document.getElementById('set-ai');
+
+            if (mode === 'legacy') {
+                body.classList.replace('ai-active', 'legacy-active');
+                btns[0].classList.add('active');
+                btns[1].classList.remove('active');
+                aiSet.classList.remove('visible');
+                setTimeout(() => legacySet.classList.add('visible'), 300);
+
+                // 3D Visual Feedback for Legacy
+                gsap.to(mesh.material.color, { r: 100 / 255, g: 116 / 255, b: 139 / 255, duration: 0.5 });
+                gsap.to(mesh.material, { emissiveIntensity: 0.1, opacity: 0.2, duration: 0.5 });
+                ring1.visible = ring2.visible = false;
+            } else {
+                body.classList.replace('legacy-active', 'ai-active');
+                btns[1].classList.add('active');
+                btns[0].classList.remove('active');
+                legacySet.classList.remove('visible');
+                setTimeout(() => aiSet.classList.add('visible'), 300);
+
+                // 3D Visual Feedback for AI
+                gsap.to(mesh.material.color, { r: 0, g: 242 / 255, b: 254 / 255, duration: 0.5 });
+                gsap.to(mesh.material, { emissiveIntensity: 0.6, opacity: 0.4, duration: 0.5 });
+                ring1.visible = ring2.visible = true;
+            }
+        }
+
+        // Initial entrance
+        gsap.from("#stage-hero > *", { opacity: 0, y: 30, duration: 1, stagger: 0.2, ease: "power3.out", delay: 0.5 });
+    </script>
+</body>
+
+</html>

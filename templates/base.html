@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Adaptive AI-Based Medical Image Enhancement and Tumor Risk Analysis System">
+    <title>{% block title %}TumorInsight{% endblock %} | Medical Image Analysis</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+        <i data-lucide="sun"></i>
+    </button>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <!-- Left Side -->
+        <a href="/dashboard/overview"
+            class="nav-item {% if request.path == '/dashboard/overview' or request.path == '/' %}active{% endif %}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Overview</span>
+        </a>
+        <a href="/dashboard/detection{% if request.args.get('scan_id') %}?scan_id={{ request.args.get('scan_id') }}{% endif %}"
+            class="nav-item {% if request.path == '/dashboard/detection' %}active{% endif %}">
+            <i data-lucide="scan"></i>
+            <span>Detection</span>
+        </a>
+        <a href="/dashboard/risk?tab=analysis{% if request.args.get('scan_id') %}&scan_id={{ request.args.get('scan_id') }}{% endif %}"
+            class="nav-item {% if request.path == '/dashboard/risk' and (request.args.get('tab') == 'analysis' or not request.args.get('tab')) %}active{% endif %}">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Analysis</span>
+        </a>
+
+        <!-- Center Plus -->
+        <a href="/dashboard/upload" class="nav-plus" title="Upload New Scan">
+            <i data-lucide="plus"></i>
+        </a>
+
+        <!-- Right Side -->
+        <a href="/dashboard/risk?tab=insights{% if request.args.get('scan_id') %}&scan_id={{ request.args.get('scan_id') }}{% endif %}"
+            class="nav-item {% if request.path == '/dashboard/risk' and request.args.get('tab') == 'insights' %}active{% endif %}">
+            <i data-lucide="activity"></i>
+            <span>Insights</span>
+        </a>
+        <a href="/dashboard/comparison{% if request.args.get('scan_id') %}?scan_id={{ request.args.get('scan_id') }}{% endif %}"
+            class="nav-item {% if (request.path == '/dashboard/comparison') %}active{% endif %}">
+            <i data-lucide="columns"></i>
+            <span>Compare</span>
+        </a>
+        <a href="/dashboard/export{% if request.args.get('scan_id') %}?scan_id={{ request.args.get('scan_id') }}{% endif %}"
+            class="nav-item {% if request.path == '/dashboard/export' %}active{% endif %}">
+            <i data-lucide="file-down"></i>
+            <span>Export</span>
+        </a>
+    </nav>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Processing...</div>
+        <div class="loading-sub" id="loadingSub">Please wait while the AI analyzes your image</div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="brand-header">
+            <div class="brand-main">
+                <div class="brand-logo">
+                    <i data-lucide="activity"></i>
+                </div>
+                <div>
+                    <div class="brand-text">TumorInsight</div>
+                    <div class="brand-sub">Advanced Tumor Analysis Platform</div>
+                </div>
+            </div>
+
+            <div class="header-info">
+                <div class="info-item">
+                    <span class="info-label">Clinical Status</span>
+                    <span class="info-value mint">System Ready</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Active Engine</span>
+                    <span class="info-value">Neural Analysis v1.0</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="window.location.reload()">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
