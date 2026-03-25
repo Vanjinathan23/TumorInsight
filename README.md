@@ -174,7 +174,7 @@ The result is mapped to **Low**, **Medium**, or **High** risk levels.
 ## 🖼 Screenshots
 | Initial Dashboard | Tumor Analysis | Risk Assessment |
 | :---: | :---: | :---: |
-| ![Dashboard](https://via.placeholder.com/300x200?text=Clinical+Hub) | ![Analysis](https://via.placeholder.com/300x200?text=Segmentation+View) | ![Risk](https://via.placeholder.com/300x200?text=Risk+Scoring) |
+| ![Dashboard]([https://via.placeholder.com/300x200?text=Clinical+Hub](https://github.com/Vanjinathan23/TumorInsight/blob/main/Images/Screenshot%202026-03-09%20160641.png)) | ![Analysis](https://via.placeholder.com/300x200?text=Segmentation+View) | ![Risk](https://via.placeholder.com/300x200?text=Risk+Scoring) |
 
 ---
 
